@@ -6,7 +6,7 @@ var tasksInProgressEl = document.querySelector("#tasks-in-progress");
 var tasksCompletedEl = document.querySelector("#tasks-completed");
 var taskIdCounter = 0;
 
-
+// ~*~*~*~*~*~Functions~*~*~*~*~*~
 var taskFormHandler = function() {
   event.preventDefault();
   var taskNameInput = document.querySelector("input[name='task-name']").value;
@@ -54,6 +54,8 @@ var createTaskEl = function(taskDataObj){
   listItemEl.appendChild(taskActionsEl);
   // add entire li to ul
   tasksToDoEl.appendChild(listItemEl);
+  //make li draggable
+  listItemEl.setAttribute("draggable","true")
   // increase task counter for next unique id
   taskIdCounter ++
 };
@@ -137,7 +139,6 @@ var completeEditTask = function(taskName, taskType, taskId) {
   document.querySelector("header p").textContent = "Click the button below to add a new task!"
 }
 
-//WIP
 var taskStatusChangeHandler = function(event) {
   // get the task item's id
   var taskId = event.target.getAttribute("data-task-id");
@@ -155,10 +156,54 @@ var taskStatusChangeHandler = function(event) {
     case "completed":
       tasksCompletedEl.appendChild(taskSelected);
       break;
-  }  
+    default:
+      break;
+  }
+};
+
+var dragTaskHandler = function(event) {
+  var taskId = event.target.getAttribute("data-task-id");
+  event.dataTransfer.setData("text/plain",taskId);
+  var getId = event.dataTransfer.getData("text/plain");
+};
+
+var dropZoneDragHandler = function(event) {
+  var taskListEl = event.target.closest(".task-list");
+  if(taskListEl) {
+    event.preventDefault();
+  }
+};
+
+var dropTaskHandler = function(event) {
+  var id = event.dataTransfer.getData("text/plain");
+  var draggableElement = document.querySelector("[data-task-id='" + id + "']");
+  var dropZoneEl = event.target.closest(".task-list");
+  var statusType = dropZoneEl.id;
+  var selectStatusEl = draggableElement.querySelector("select[name='status-change'");
+  switch(statusType){
+    case "tasks-to-do":
+      selectStatusEl.selectedIndex = 0;
+      break;
+    case "tasks-in-progress":
+      selectStatusEl.selectedIndex = 1;
+      break;
+    case "tasks-completed":
+      selectStatusEl.selectedIndex = 2;
+      break;
+    default:
+      break;
+  };
+  dropZoneEl.appendChild(draggableElement);
 };
 
 //~*~*~*~*~*~Event Listeners~*~*~*~*~*~
+// handle new task creation
 formEl.addEventListener("submit", taskFormHandler);
+// handle task actions edit and delete
 pageContentEl.addEventListener("click", taskButtonHandler);
+// handle task status changes (select drop down)
 pageContentEl.addEventListener("change",taskStatusChangeHandler);
+// handle dragstart, dragover, and drop
+pageContentEl.addEventListener("dragstart",dragTaskHandler);
+pageContentEl.addEventListener("dragover",dropZoneDragHandler);
+pageContentEl.addEventListener("drop", dropTaskHandler);
