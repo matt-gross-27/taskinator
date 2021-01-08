@@ -2,10 +2,15 @@
 var tasks = [];
 var pageContentEl = document.querySelector("#page-content");
 var formEl = document.querySelector("#task-form");
+var selectTypeEl = document.querySelector("select[name='task-type']");
+var taskTypes = [];
+
 var tasksToDoEl = document.querySelector("#tasks-to-do");
 var tasksInProgressEl = document.querySelector("#tasks-in-progress");
 var tasksCompletedEl = document.querySelector("#tasks-completed");
+
 var taskIdCounter = 0;
+
 
 // ~*~*~*~*~*~Functions~*~*~*~*~*~
 var taskFormHandler = function() {
@@ -282,9 +287,47 @@ var loadTasks = function() {
   };
 };
 
+var selectTypeChangeHandler = function(event) {
+  if(event.target.value === "Create New Type") {
+    var typePrompt = prompt("Name Your New Task Type");
+    if(!typePrompt) {
+      event.target.value = ""
+      return false;
+    };
+    createTaskTypeEl(typePrompt);
+  };
+};
+
+var createTaskTypeEl = function(newType) {
+  var optionEl = document.createElement("option");
+  optionEl.textContent = newType;
+  optionEl.value = newType;
+  selectTypeEl.appendChild(optionEl);
+  selectTypeEl.value = optionEl.value;
+  taskTypes.push(newType)
+  saveTaskTypes();
+};
+
+var saveTaskTypes = function() {
+  localStorage.setItem("taskTypes", JSON.stringify(taskTypes));
+};
+
+var loadTaskTypes = function () {
+  var savedTaskTypes = localStorage.getItem("taskTypes");
+  if (!savedTaskTypes) {
+    return false;
+  };
+  savedTaskTypes = JSON.parse(savedTaskTypes)
+  for (let i = 0; i < savedTaskTypes.length; i++) {
+    createTaskTypeEl(savedTaskTypes[i]);
+  }
+};
+
 //~*~*~*~*~*~Event Listeners~*~*~*~*~*~
 // handle new task creation
 formEl.addEventListener("submit", taskFormHandler);
+// handle new task-type creation
+selectTypeEl.addEventListener("change", selectTypeChangeHandler);
 // handle task actions edit and delete
 pageContentEl.addEventListener("click", taskButtonHandler);
 // handle task status changes (select drop down)
@@ -297,4 +340,5 @@ pageContentEl.addEventListener("dragleave", dragLeaveHandler);
 
 
 // run loadTasks
+loadTaskTypes();
 loadTasks();
